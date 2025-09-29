@@ -1,71 +1,28 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>✨ AI Content & Facebook Scheduler</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ AI Content Generator</title>
   <style>
-    body {
-      font-family: "Prompt", sans-serif;
-      background: #101828;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      color: #ffd700;
-    }
-    .card {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px 0;
-      width: 90%;
-      max-width: 600px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-    }
-    label {
-      display: block;
-      margin: 10px 0 5px;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      margin-bottom: 10px;
-    }
-    button {
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1e40af;
-    }
-    pre {
-      background: #0f172a;
-      padding: 10px;
-      border-radius: 6px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
+    body { font-family: "Prompt", sans-serif; background: #101828; color: #fff; padding: 20px; }
+    h1 { color: #ffd700; }
+    .card { background: #1e293b; border-radius: 12px; padding: 20px; margin: 20px 0; max-width: 600px; }
+    label { display: block; margin: 10px 0 5px; }
+    input, select { width: 100%; padding: 10px; border-radius: 6px; border: none; margin-bottom: 10px; }
+    button { background: #2563eb; color: #fff; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #1e40af; }
+    pre { background: #0f172a; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <h1>✨ AI Content & Facebook Scheduler</h1>
+  <h1>✨ AI Content Generator</h1>
 
   <div class="card">
     <label>หัวข้อ (Topic)</label>
-    <input id="topic" placeholder="การออมเงิน, เคล็ดลับสุขภาพ..." />
+    <input id="topic" placeholder="การออมเงิน, เคล็ดลับสุขภาพ...">
 
-    <label>จำนวน (สูงสุด 5)</label>
+    <label>จำนวน (1–5)</label>
     <select id="count">
       <option value="1">1</option>
       <option value="2">2</option>
@@ -74,10 +31,12 @@
       <option value="5">5</option>
     </select>
 
-    <label>โมเดล</label>
+    <label>เลือกโมเดล</label>
     <select id="model">
-      <option value="gemini-1.5-flash">Gemini (Google)</option>
-      <option value="gpt-4o-mini">OpenAI GPT-4o-mini</option>
+      <option value="gemini-1.5-flash-latest">⚡ Gemini 1.5 Flash</option>
+      <option value="gemini-1.5-pro-latest">🧠 Gemini 1.5 Pro</option>
+      <option value="gpt-4o-mini">🤖 OpenAI GPT-4o-mini</option>
+      <option value="gpt-4o">🚀 OpenAI GPT-4o</option>
     </select>
 
     <button onclick="generateContent()">Generate</button>
@@ -85,9 +44,8 @@
   </div>
 
   <div class="card">
-    <h3>⚙️ การตั้งค่า</h3>
     <label>Proxy Base URL</label>
-    <input id="proxy" placeholder="https://fb-proxy-xxxx.onrender.com" />
+    <input id="proxy" placeholder="https://fb-proxy-xxxx.onrender.com">
     <button onclick="saveProxy()">บันทึก</button>
   </div>
 
@@ -98,13 +56,12 @@
 
   <script>
     let proxyBase = localStorage.getItem("proxyBase") || "";
-
     document.getElementById("proxy").value = proxyBase;
 
     function saveProxy() {
       proxyBase = document.getElementById("proxy").value;
       localStorage.setItem("proxyBase", proxyBase);
-      alert("✅ บันทึก Proxy เรียบร้อย");
+      alert("✅ Proxy URL ถูกบันทึกแล้ว");
     }
 
     async function generateContent() {
@@ -112,24 +69,17 @@
       const count = document.getElementById("count").value;
       const model = document.getElementById("model").value;
 
-      if (!proxyBase) {
-        alert("⚠️ โปรดใส่ Proxy Base URL ก่อน");
-        return;
-      }
+      if (!proxyBase) return alert("⚠️ โปรดใส่ Proxy Base URL");
 
-      document.getElementById("status").innerText = "⏳ กำลังสร้างเนื้อหา...";
+      document.getElementById("status").innerText = "⏳ กำลังสร้าง...";
       document.getElementById("result").innerText = "";
 
       try {
         const response = await fetch(proxyBase + "/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model }),
+          body: JSON.stringify({ topic, count, model })
         });
-
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
-        }
 
         const data = await response.json();
         document.getElementById("status").innerText = "✅ เสร็จแล้ว";
