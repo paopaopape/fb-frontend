@@ -1,214 +1,59 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Content & Facebook Scheduler</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{ --bg:#0b1220; --card:#121a2c; --fg:#eaf2ff; --muted:#b7c4de; --brand:#4aa5ff; --ok:#54f0c0; --err:#ff7b7b; }
-    *{ box-sizing:border-box }
-    body{ margin:0; font-family:"Prompt",system-ui; background:linear-gradient(180deg,var(--bg),#0f1a30 60%); color:var(--fg); }
-    .wrap{ max-width:980px; margin:auto; padding:20px; }
-    h1{ font-size:clamp(22px,4vw,36px); margin:12px 0 8px }
-    .card{ background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px; margin:14px 0; }
-    label{ display:block; margin:8px 0 4px; color:var(--muted) }
-    input, select, textarea{ width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.15); background:#0a1428; color:var(--fg) }
-    textarea{ min-height:80px }
-    .row{ display:grid; gap:12px; grid-template-columns: 1fr 1fr 1fr }
-    .btn{ display:inline-flex; gap:8px; align-items:center; border:1px solid rgba(255,255,255,.15); padding:10px 14px; border-radius:12px; cursor:pointer; background:#1b2a46; color:var(--fg) }
-    .btn.primary{ background:linear-gradient(180deg,#2f78ff,#1f62e6); border-color:transparent }
-    .btn.ok{ background:linear-gradient(180deg,#1bbf8c,#14996f); border-color:transparent }
-    .btn.warn{ background:#40321e; }
-    .grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); }
-    .pill{ display:inline-block; font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); color:var(--muted) }
-    .muted{ color:var(--muted) }
-    .status{ margin-top:8px; min-height:24px }
-    .item{ background:#0a1428; border:1px dashed rgba(255,255,255,.15); border-radius:12px; padding:10px }
-    .item h4{ margin:0 0 6px; font-size:14px }
-    .right{ display:flex; gap:8px; flex-wrap:wrap }
-    @media (max-width:720px){ .row{ grid-template-columns:1fr } }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <h1>✨ AI Content & Facebook Scheduler</h1>
-    <p class="muted">สร้างคอนเทนต์ + แคปชั่น + Image Prompts แล้วโพสต์ลงเพจ Facebook ทันทีหรือ <strong>ตั้งเวลา</strong> ได้ — เลือกใช้ <span class="pill">Gemini</span> หรือ <span class="pill">OpenAI</span></p>
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import fetch from "node-fetch";
 
-    <div class="card">
-      <div class="row">
-        <div>
-          <label>หัวข้อ (Topic)</label>
-          <input id="topic" placeholder="เช่น การออมเงิน, เคล็ดลับสุขภาพ, การทำบัญชี..." />
-        </div>
-        <div>
-          <label>จำนวน (สูงสุด 5)</label>
-          <select id="count">
-            <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
-          </select>
-        </div>
-        <div>
-          <label>โมเดล</label>
-          <select id="provider">
-            <option value="gemini">Gemini (Google)</option>
-            <option value="openai">OpenAI (ChatGPT)</option>
-          </select>
-        </div>
-      </div>
-      <div class="right" style="margin-top:12px">
-        <button class="btn primary" onclick="generate()">Generate</button>
-        <span id="genStatus" class="status"></span>
-      </div>
-    </div>
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    <div id="result" style="display:none;">
-      <div class="grid">
-        <div class="card">
-          <h3>📝 Content</h3>
-          <div id="contentList"></div>
-        </div>
-        <div class="card">
-          <h3>💬 Captions</h3>
-          <div id="captionList"></div>
-        </div>
-        <div class="card">
-          <h3>🎨 Image Prompts</h3>
-          <div id="imageList"></div>
-        </div>
-      </div>
+app.use(cors());
+app.use(bodyParser.json());
 
-      <div class="card">
-        <h3>✅ ข้อความที่จะโพสต์</h3>
-        <textarea id="selectedMessage" placeholder="คลิกปุ่ม 'ใช้ข้อความนี้' ที่รายการด้านบน หรือพิมพ์เองได้ที่นี่"></textarea>
-        <div class="row" style="margin-top:8px">
-          <div>
-            <label>โพสต์ทันที</label>
-            <button class="btn ok" onclick="postNow()">โพสต์ไปที่เพจ</button>
-          </div>
-          <div>
-            <label>หรือ ตั้งเวลาโพสต์</label>
-            <input id="scheduleAt" type="datetime-local" />
-          </div>
-          <div style="align-self:end">
-            <button class="btn" onclick="schedulePost()">ตั้งเวลาโพสต์</button>
-          </div>
-        </div>
-        <div id="postStatus" class="status"></div>
-      </div>
-    </div>
+// Health check
+app.get("/", (req, res) => {
+  res.send("✅ fb-proxy is running!");
+});
 
-    <div class="card">
-      <h3>⚙️ การตั้งค่า</h3>
-      <p class="muted">หน้านี้จะเรียกผ่าน Proxy ของคุณ (Render/Server) เท่านั้น — ปลอดภัย ไม่ต้องใส่คีย์ในฝั่งหน้าเว็บ</p>
-      <label>Proxy Base URL</label>
-      <input id="proxyUrl" placeholder="เช่น https://your-proxy.onrender.com" />
-      <div class="right" style="margin-top:8px">
-        <button class="btn" onclick="saveProxy()">บันทึก</button>
-        <span id="proxyStatus" class="status"></span>
-      </div>
-    </div>
+// Main API
+app.post("/post-now", async (req, res) => {
+  try {
+    const { topic, count, provider } = req.body;
 
-  </div>
-
-<script>
-  // ---- Helpers
-  const $ = (id)=>document.getElementById(id);
-  function uiItem(text, idx, targetTextareaId){
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = '<h4>#'+(idx+1)+'</h4><div class="muted" style="white-space:pre-wrap">'+escapeHtml(text)+'</div><div class="right" style="margin-top:8px"><button class="btn" data-text="'+encodeURIComponent(text)+'">ใช้ข้อความนี้</button><button class="btn" onclick="copyText(`'+text.replace(/`/g,'\\`')+'`)">คัดลอก</button></div>';
-    div.querySelector('button').onclick = ()=> { $(targetTextareaId).value = text; window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); };
-    return div;
-  }
-  function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-  function toast(el, msg){ el.textContent = msg; setTimeout(()=>el.textContent='', 4000); }
-  function loadProxy(){ const v = localStorage.getItem('proxy_base'); if(v) $('proxyUrl').value = v; }
-  function getProxy(){ return $('proxyUrl').value.trim() || localStorage.getItem('proxy_base') || ''; }
-  function saveProxy(){ const v = $('proxyUrl').value.trim(); if(!v) return toast($('proxyStatus'),'กรุณาใส่ Proxy URL'); localStorage.setItem('proxy_base', v); toast($('proxyStatus'),'บันทึกแล้ว'); }
-
-  loadProxy();
-
-  async function generate(){
-    const proxy = getProxy();
-    if (!proxy) return toast($('genStatus'),'กรุณาใส่ Proxy URL ด้านล่างก่อน');
-    const topic = $('topic').value.trim();
-    const count = parseInt($('count').value,10);
-    const provider = $('provider').value;
-    if(!topic) return toast($('genStatus'),'กรุณาใส่หัวข้อ (Topic)');
-
-    $('genStatus').textContent = '⏳ กำลังสร้างเนื้อหา...';
-    try{
-      const res = await fetch(proxy + '/ai/generate', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ provider, topic, count })
-      });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.error || res.statusText);
-
-      // render lists
-      $('contentList').innerHTML = '';
-      $('captionList').innerHTML = '';
-      $('imageList').innerHTML = '';
-      (data.content || []).forEach((t,i)=> $('contentList').appendChild(uiItem(t,i,'selectedMessage')));
-      (data.captions || []).forEach((t,i)=> $('captionList').appendChild(uiItem(t,i,'selectedMessage')));
-      (data.image_prompts || []).forEach((t,i)=> $('imageList').appendChild(uiItem(t,i,'selectedMessage')));
-
-      $('result').style.display = 'block';
-      toast($('genStatus'),'เสร็จแล้ว ✅');
-    }catch(err){
-      console.error(err);
-      toast($('genStatus'),'❌ Error: ' + err.message);
+    if (!topic) {
+      return res.status(400).json({ error: "Missing topic" });
     }
-  }
 
-  async function postNow(){
-    const proxy = getProxy();
-    const message = $('selectedMessage').value.trim();
-    if(!proxy) return toast($('postStatus'),'กรุณาใส่ Proxy URL');
-    if(!message) return toast($('postStatus'),'กรุณาเลือกหรือพิมพ์ข้อความก่อน');
-    $('postStatus').textContent = '⏳ กำลังโพสต์...';
-    try{
-      const res = await fetch(proxy + '/fb/post-now', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message })
-      });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.error || JSON.stringify(data));
-      toast($('postStatus'),'✅ โพสต์สำเร็จ! Post ID: ' + (data.id || '—'));
-    }catch(err){
-      toast($('postStatus'),'❌ โพสต์ไม่สำเร็จ: ' + err.message);
+    // --- เรียก Gemini API ---
+    if (provider === "gemini") {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + process.env.GEMINI_API_KEY,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `เขียนโพสต์ Facebook เรื่อง: ${topic}` }] }]
+          })
+        }
+      );
+
+      const data = await response.json();
+      return res.json({ result: data });
     }
-  }
 
-  async function schedulePost(){
-    const proxy = getProxy();
-    const message = $('selectedMessage').value.trim();
-    const dt = $('scheduleAt').value;
-    if(!proxy) return toast($('postStatus'),'กรุณาใส่ Proxy URL');
-    if(!message) return toast($('postStatus'),'กรุณาเลือกหรือพิมพ์ข้อความก่อน');
-    if(!dt) return toast($('postStatus'),'กรุณาเลือกวันและเวลา');
-    $('postStatus').textContent = '⏳ กำลังตั้งเวลา...';
-    try{
-      const res = await fetch(proxy + '/fb/schedule', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message, isoDatetime: dt })
-      });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.error || JSON.stringify(data));
-      toast($('postStatus'),'✅ ตั้งเวลาแล้ว! Post ID: ' + (data.id || '—'));
-    }catch(err){
-      toast($('postStatus'),'❌ ตั้งเวลาไม่สำเร็จ: ' + err.message);
+    // --- เผื่อรองรับ OpenAI (ยังไม่ set key ก็ไม่เป็นไร) ---
+    if (provider === "openai") {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.json({ error: "OPENAI_API_KEY not set" });
+      }
+      // ... code เรียก OpenAI ต่อ
     }
-  }
 
-  function copyText(t){
-    navigator.clipboard.writeText(t).then(()=>{
-      toast($('postStatus'),'คัดลอกแล้ว');
-    });
+    res.json({ error: "Unknown provider" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-</script>
-</body>
-</html>
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
