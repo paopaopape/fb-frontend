@@ -5,108 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Content & Facebook Scheduler</title>
   <style>
-    body {
-      background: #0f172a;
-      color: #fff;
-      font-family: sans-serif;
-      padding: 20px;
-    }
-    .card {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
-    input, select, button {
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      margin: 5px 0;
-    }
-    button {
-      background: #3b82f6;
-      color: #fff;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #2563eb;
-    }
-    .error {
-      color: #f87171;
-    }
+    body { font-family: Arial, sans-serif; background:#111827; color:#fff; text-align:center; padding:20px; }
+    .card { background:#1f2937; padding:20px; border-radius:12px; max-width:600px; margin:0 auto; }
+    input, select { padding:8px; margin:8px; border-radius:8px; border:none; }
+    button { padding:10px 20px; border:none; border-radius:8px; background:#2563eb; color:#fff; cursor:pointer; }
+    button:hover { background:#1d4ed8; }
+    .error { color:#f87171; margin-top:10px; }
+    .result { background:#374151; padding:10px; border-radius:8px; margin-top:10px; text-align:left; }
   </style>
 </head>
 <body>
   <h1>✨ AI Content & Facebook Scheduler</h1>
-
   <div class="card">
-    <label>หัวข้อ (Topic)</label>
-    <input type="text" id="topic" placeholder="เช่น การออมเงิน, เคล็ดลับสุขภาพ, การทำบัญชี..." />
-
+    <label>หัวข้อ (Topic)</label><br>
+    <input type="text" id="topic" placeholder="เช่น การออมเงิน" /><br>
     <label>จำนวน (สูงสุด 5)</label>
     <select id="count">
-      <option>1</option>
-      <option>2</option>
-      <option>3</option>
-      <option>4</option>
-      <option>5</option>
-    </select>
-
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select><br>
     <label>โมเดล</label>
     <select id="provider">
       <option value="gemini">Gemini (Google)</option>
-      <option value="openai">OpenAI (ChatGPT)</option>
-    </select>
-
-    <br /><br />
+      <option value="openai">OpenAI</option>
+    </select><br>
     <button onclick="generate()">Generate</button>
-    <p id="status"></p>
+    <div id="error" class="error"></div>
   </div>
 
+  <h2 style="margin-top:20px;">การตั้งค่า</h2>
   <div class="card">
-    <h3>การตั้งค่า</h3>
-    <label>Proxy Base URL</label>
-    <input type="text" id="proxyUrl" value="https://fb-proxy-m63e.onrender.com" />
-    <button onclick="saveUrl()">บันทึก</button>
+    <label>Proxy Base URL</label><br>
+    <input type="text" id="proxy" value="https://fb-proxy-xxxx.onrender.com" style="width:90%;" />
+    <button onclick="saveProxy()">บันทึก</button>
   </div>
 
-  <div class="card">
-    <h3>ผลลัพธ์</h3>
-    <pre id="result"></pre>
-  </div>
+  <h2 style="margin-top:20px;">ผลลัพธ์</h2>
+  <div id="result" class="result"></div>
 
   <script>
-    function saveUrl() {
-      const url = document.getElementById("proxyUrl").value;
-      localStorage.setItem("proxyUrl", url);
-      alert("บันทึกเรียบร้อย: " + url);
+    function saveProxy() {
+      localStorage.setItem("proxyURL", document.getElementById("proxy").value);
+      alert("บันทึก Proxy Base URL เรียบร้อย");
     }
 
     async function generate() {
       const topic = document.getElementById("topic").value;
       const count = document.getElementById("count").value;
       const provider = document.getElementById("provider").value;
-      const baseUrl = localStorage.getItem("proxyUrl") || document.getElementById("proxyUrl").value;
+      const proxyURL = localStorage.getItem("proxyURL") || document.getElementById("proxy").value;
 
-      document.getElementById("status").innerText = "⏳ กำลังสร้างเนื้อหา...";
-      document.getElementById("result").innerText = "";
+      document.getElementById("error").innerText = "";
+      document.getElementById("result").innerText = "⏳ กำลังสร้าง...";
 
       try {
-        const res = await fetch(`${baseUrl}/post-now`, {
+        const res = await fetch(proxyURL + "/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ topic, count, provider })
         });
 
-        if (!res.ok) {
-          throw new Error("HTTP error! status: " + res.status);
-        }
+        if (!res.ok) throw new Error("HTTP " + res.status);
 
         const data = await res.json();
-        document.getElementById("status").innerText = "✅ เสร็จแล้ว";
-        document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+        document.getElementById("result").innerText = data.result;
       } catch (err) {
-        document.getElementById("status").innerHTML = `<span class="error">❌ Error: ${err.message}</span>`;
+        document.getElementById("error").innerText = "❌ Error: " + err.message;
+        document.getElementById("result").innerText = "";
       }
     }
   </script>
