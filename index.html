@@ -3,26 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✨ AI Content Generator</title>
+  <title>AI Content & Facebook Scheduler</title>
   <style>
-    body { font-family: "Prompt", sans-serif; background: #101828; color: #fff; padding: 20px; }
-    h1 { color: #ffd700; }
-    .card { background: #1e293b; border-radius: 12px; padding: 20px; margin: 20px 0; max-width: 600px; }
-    label { display: block; margin: 10px 0 5px; }
-    input, select { width: 100%; padding: 10px; border-radius: 6px; border: none; margin-bottom: 10px; }
-    button { background: #2563eb; color: #fff; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; }
-    button:hover { background: #1e40af; }
-    pre { background: #0f172a; padding: 10px; border-radius: 6px; white-space: pre-wrap; }
+    body { font-family: Arial, sans-serif; background:#0d1117; color:#fff; padding:20px; }
+    .card { background:#161b22; padding:20px; border-radius:8px; margin-bottom:20px; }
+    input, select { padding:10px; margin:5px 0; width:100%; border-radius:5px; border:1px solid #444; background:#0d1117; color:#fff; }
+    button { padding:10px 20px; background:#2d72d9; color:#fff; border:none; border-radius:5px; cursor:pointer; }
+    button:hover { background:#1b4f91; }
+    pre { background:#000; color:#0f0; padding:10px; border-radius:5px; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <h1>✨ AI Content Generator</h1>
+  <h1>✨ AI Content & Facebook Scheduler</h1>
 
   <div class="card">
     <label>หัวข้อ (Topic)</label>
-    <input id="topic" placeholder="การออมเงิน, เคล็ดลับสุขภาพ...">
+    <input type="text" id="topic" placeholder="การออมเงิน">
 
-    <label>จำนวน (1–5)</label>
+    <label>จำนวน (สูงสุด 5)</label>
     <select id="count">
       <option value="1">1</option>
       <option value="2">2</option>
@@ -31,61 +29,52 @@
       <option value="5">5</option>
     </select>
 
-    <label>เลือกโมเดล</label>
+    <label>โมเดล</label>
     <select id="model">
-      <option value="gemini-1.5-flash-latest">⚡ Gemini 1.5 Flash</option>
-      <option value="gemini-1.5-pro-latest">🧠 Gemini 1.5 Pro</option>
-      <option value="gpt-4o-mini">🤖 OpenAI GPT-4o-mini</option>
-      <option value="gpt-4o">🚀 OpenAI GPT-4o</option>
+      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
     </select>
 
-    <button onclick="generateContent()">Generate</button>
-    <p id="status"></p>
+    <button onclick="generate()">Generate</button>
   </div>
 
   <div class="card">
+    <h3>⚙️ การตั้งค่า</h3>
     <label>Proxy Base URL</label>
-    <input id="proxy" placeholder="https://fb-proxy-xxxx.onrender.com">
+    <input type="text" id="proxy" value="https://fb-proxy-m63e.onrender.com">
     <button onclick="saveProxy()">บันทึก</button>
   </div>
 
   <div class="card">
     <h3>📄 ผลลัพธ์</h3>
-    <pre id="result"></pre>
+    <pre id="result">...</pre>
   </div>
 
   <script>
-    let proxyBase = localStorage.getItem("proxyBase") || "";
-    document.getElementById("proxy").value = proxyBase;
-
     function saveProxy() {
-      proxyBase = document.getElementById("proxy").value;
-      localStorage.setItem("proxyBase", proxyBase);
-      alert("✅ Proxy URL ถูกบันทึกแล้ว");
+      localStorage.setItem("proxyBase", document.getElementById("proxy").value);
+      alert("บันทึกเรียบร้อยแล้ว ✅");
     }
 
-    async function generateContent() {
+    async function generate() {
+      const proxyBase = localStorage.getItem("proxyBase") || document.getElementById("proxy").value;
       const topic = document.getElementById("topic").value;
       const count = document.getElementById("count").value;
       const model = document.getElementById("model").value;
 
-      if (!proxyBase) return alert("⚠️ โปรดใส่ Proxy Base URL");
-
-      document.getElementById("status").innerText = "⏳ กำลังสร้าง...";
-      document.getElementById("result").innerText = "";
+      document.getElementById("result").textContent = "⏳ กำลังสร้างเนื้อหา...";
 
       try {
         const response = await fetch(proxyBase + "/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model })
+          body: JSON.stringify({ topic, count, model }),
         });
 
         const data = await response.json();
-        document.getElementById("status").innerText = "✅ เสร็จแล้ว";
-        document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+        document.getElementById("result").textContent = JSON.stringify(data, null, 2);
       } catch (err) {
-        document.getElementById("status").innerText = "❌ Error: " + err.message;
+        document.getElementById("result").textContent = "❌ Error: " + err.message;
       }
     }
   </script>
