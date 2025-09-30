@@ -31,6 +31,7 @@
     .copy-btn:hover { background: #d97706; }
     .export-btn { background: #9333ea; }
     .export-btn:hover { background: #7e22ce; }
+    .hashtag { color: #38bdf8; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -126,16 +127,29 @@
               const card = document.createElement("div");
               card.className = "card";
 
+              // ✅ parse markdown → html + highlight hashtags + insert emoji
               let htmlContent = content
-                .replace(/^### (.*$)/gim, "<h2>$1</h2>")
+                .replace(/^### (.*$)/gim, "<h3>$1</h3>")
                 .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-                .replace(/^# (.*$)/gim, "<h2>$1</h2>")
+                .replace(/^# (.*$)/gim, "<h1>$1</h1>")
                 .replace(/\*\*(.*?)\*\*/gim, "<b>$1</b>")
+                .replace(/\n\* (.*?)/gim, "<ul><li>$1</li></ul>")
                 .replace(/\n- (.*?)/gim, "<ul><li>$1</li></ul>")
+                .replace(/#(\S+)/g, '<span class="hashtag">#$1</span>')
                 .replace(/\n/gim, "<br>");
 
-              card.innerHTML = `<h2>บทความที่ ${i+1}</h2><p>${htmlContent}</p>`;
+              // ✅ Auto Emoji Insert
+              htmlContent = htmlContent
+                .replace(/เที่ยว|ท่องเที่ยว/g, "🌄 $&")
+                .replace(/อาหาร|กิน|ข้าว/g, "🍜 $&")
+                .replace(/งาน|เทศกาล|ปาร์ตี้/g, "🎉 $&")
+                .replace(/สุขภาพ|ออกกำลังกาย|ฟิต/g, "💪 $&")
+                .replace(/การเงิน|เงิน|ลงทุน/g, "💰 $&")
+                .replace(/การเดินทาง|เครื่องบิน|รถ/g, "✈️ $&");
 
+              card.innerHTML = `<h2>บทความที่ ${i+1}</h2><div>${htmlContent}</div>`;
+
+              // ✅ ปุ่ม Copy
               const btnRow = document.createElement("div");
               btnRow.className = "btn-row";
 
@@ -149,13 +163,13 @@
               resultDiv.appendChild(card);
             });
 
-            // ปุ่ม Export All เป็น TXT
+            // ✅ ปุ่ม Export TXT
             if (allTexts.length > 0) {
               document.getElementById("exportAllBtn").style.display = "block";
               document.getElementById("exportAllBtn").dataset.texts = JSON.stringify(allTexts);
             }
           } else {
-            resultDiv.innerText = JSON.stringify(data, null, 2);
+            resultDiv.innerText = "⚠️ ไม่พบผลลัพธ์จาก Gemini";
           }
         } else if (mode === "image") {
           if (data.data && data.data.images) {
@@ -182,11 +196,6 @@
               block.appendChild(btnRow);
               resultDiv.appendChild(block);
             });
-
-            if (allImages.length > 1) {
-              document.getElementById("exportAllBtn").style.display = "block";
-              document.getElementById("exportAllBtn").dataset.images = JSON.stringify(allImages);
-            }
           } else {
             resultDiv.innerText = JSON.stringify(data, null, 2);
           }
@@ -220,8 +229,6 @@
         link.href = URL.createObjectURL(blob);
         link.download = "ai_contents.txt";
         link.click();
-      } else if (btn.dataset.images) {
-        alert("🚧 Export ZIP สำหรับภาพยังไม่เสร็จใน frontend (ต้องใช้ JSZip) — ถ้าพี่อยากได้ เดี๋ยวผมเสริมโค้ดให้ครับ");
       }
     }
   </script>
