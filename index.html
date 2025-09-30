@@ -1,148 +1,111 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>✨ AI Content & Facebook Scheduler</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Generator + Manual Wake</title>
   <style>
-    body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      color: #38bdf8;
-    }
-    select, input, textarea, button {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      border-radius: 6px;
-      border: none;
-      font-size: 14px;
-    }
-    button {
-      background-color: #2563eb;
-      color: #fff;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    button:hover {
-      background-color: #1d4ed8;
-    }
-    .result-box {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 10px;
-      background: #1e293b;
-      white-space: pre-wrap;
-    }
-    .copy-btn {
-      margin-top: 10px;
-      background-color: #16a34a;
-    }
-    .copy-btn:hover {
-      background-color: #15803d;
-    }
+    body { font-family: Arial, sans-serif; background: #f9fafb; padding: 20px; }
+    h1 { color: #0066cc; }
+    .card { background: white; padding: 20px; border-radius: 8px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; background: #0066cc; color: white; }
+    button:hover { background: #004a99; }
+    .status { padding: 10px; margin-top: 10px; border-radius: 5px; font-weight: bold; }
+    .green { background: #d4edda; color: #155724; }
+    .orange { background: #fff3cd; color: #856404; }
+    .red { background: #f8d7da; color: #721c24; }
   </style>
 </head>
 <body>
-  <h1>✨ AI Content & Facebook Scheduler</h1>
+  <h1>✨ Content & Image Generator</h1>
 
-  <label>หัวข้อ (Topic)</label>
-  <input type="text" id="topic" placeholder="ใส่หัวข้อ เช่น การออมเงิน">
+  <div class="card">
+    <label>ใส่ Topic ที่อยากทำคอนเทนต์:</label>
+    <input type="text" id="topic" placeholder="เช่น วิธีเก็บเงิน, การทำบัญชี...">
+    <label>จำนวน (1–5):</label>
+    <input type="number" id="count" min="1" max="5" value="1">
+    <button onclick="generateContent()">Generate Content</button>
+  </div>
 
-  <label>จำนวน (สูงสุด 5)</label>
-  <input type="number" id="count" value="1" min="1" max="5">
+  <div class="card">
+    <h3>🖥️ Server Status</h3>
+    <button onclick="wakeServer()">Wake Server</button>
+    <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
+  </div>
 
-  <label>โหมด</label>
-  <select id="mode">
-    <option value="text">Text (คอนเทนต์โพสต์)</option>
-    <option value="image">Image (Prompt สำหรับภาพ)</option>
-  </select>
-
-  <label>โมเดล</label>
-  <select id="model">
-    <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡</option>
-    <option value="gemini-2.0-pro">Gemini 2.0 Pro 🔥</option>
-    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-  </select>
-
-  <label>โทนบทความ/ภาพ</label>
-  <select id="style">
-    <option value="แบบอ่านเข้าใจง่าย">แบบอ่านเข้าใจง่าย 📘</option>
-    <option value="แนวตลกขำๆ">แนวตลกขำๆ 😂</option>
-    <option value="แนวสร้างแรงบันดาลใจ">แนวสร้างแรงบันดาลใจ ✨</option>
-    <option value="แนวโปรโมทสินค้า">แนวโปรโมทสินค้า 🛍️</option>
-  </select>
-
-  <label>ภาษา</label>
-  <select id="language">
-    <option value="ไทย">ภาษาไทย 🇹🇭</option>
-    <option value="อังกฤษ">English 🇺🇸</option>
-  </select>
-
-  <label>แพลตฟอร์ม</label>
-  <select id="platform">
-    <option value="Facebook">Facebook</option>
-    <option value="Instagram">Instagram</option>
-    <option value="Twitter">Twitter (X)</option>
-  </select>
-
-  <button onclick="generateContent()">Generate</button>
-
-  <div id="resultBox" class="result-box" style="display:none;">
-    <h3>📄 ผลลัพธ์</h3>
-    <div id="results"></div>
-    <button id="copyBtn" class="copy-btn" style="display:none;" onclick="copyResult()">📋 Copy</button>
+  <div id="result" class="card" style="display:none;">
+    <h2>ผลลัพธ์:</h2>
+    <p id="postText"></p>
+    <pre id="imagePrompt"></pre>
   </div>
 
   <script>
-    const proxyBase = "https://fb-proxy-m63e.onrender.com"; // ✅ Proxy URL
+    const API_URL = "https://YOUR-RENDER-URL.onrender.com"; // 👈 เปลี่ยนเป็น proxy ของคุณ
+
+    async function checkStatus() {
+      const statusBox = document.getElementById("serverStatus");
+      try {
+        const res = await fetch(API_URL + "/");
+        if (res.ok) {
+          statusBox.className = "status green";
+          statusBox.innerText = "🟢 Server ตื่นพร้อมใช้งาน";
+        } else {
+          statusBox.className = "status red";
+          statusBox.innerText = "🔴 Server ปิดอยู่";
+        }
+      } catch {
+        statusBox.className = "status red";
+        statusBox.innerText = "🔴 Server ปิดอยู่";
+      }
+    }
+
+    async function wakeServer() {
+      const statusBox = document.getElementById("serverStatus");
+      statusBox.className = "status orange";
+      statusBox.innerText = "🟠 กำลังปลุก Server...";
+      try {
+        const res = await fetch(API_URL + "/");
+        if (res.ok) {
+          statusBox.className = "status green";
+          statusBox.innerText = "🟢 Server ตื่นพร้อมใช้งาน";
+        } else {
+          statusBox.className = "status red";
+          statusBox.innerText = "🔴 Server ปิดอยู่";
+        }
+      } catch {
+        statusBox.className = "status red";
+        statusBox.innerText = "🔴 Server ปิดอยู่";
+      }
+    }
 
     async function generateContent() {
       const topic = document.getElementById("topic").value;
       const count = document.getElementById("count").value;
-      const model = document.getElementById("model").value;
-      const style = document.getElementById("style").value;
-      const mode = document.getElementById("mode").value;
-      const language = document.getElementById("language").value;
-      const platform = document.getElementById("platform").value;
+      if (!topic) return alert("กรุณากรอก Topic ก่อน");
 
-      document.getElementById("results").innerText = "⏳ กำลังสร้างเนื้อหา...";
-      document.getElementById("resultBox").style.display = "block";
+      document.getElementById("result").style.display = "block";
+      document.getElementById("postText").innerText = "⏳ กำลังสร้างโพสต์...";
+      document.getElementById("imagePrompt").innerText = "";
 
       try {
-        const response = await fetch(proxyBase + "/generate", {
+        const res = await fetch(API_URL + "/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model, style, mode, language, platform }),
+          body: JSON.stringify({ topic, count, model: "gemini-2.0-flash" })
         });
+        const data = await res.json();
 
-        const data = await response.json();
-
-        if (mode === "text") {
-          document.getElementById("results").innerText = data.text.join("\n\n---\n\n");
-        } else {
-          document.getElementById("results").innerText = data.prompt;
-        }
-
-        document.getElementById("copyBtn").style.display = "inline-block";
-
-      } catch (err) {
-        document.getElementById("results").innerText = "❌ Error: " + err.message;
+        const text = data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "❌ ไม่มีผลลัพธ์";
+        document.getElementById("postText").innerText = text;
+        document.getElementById("imagePrompt").innerText = "Image Prompt: " + topic;
+      } catch (e) {
+        document.getElementById("postText").innerText = "❌ Error: " + e.message;
       }
     }
 
-    function copyResult() {
-      const text = document.getElementById("results").innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("✅ คัดลอกผลลัพธ์เรียบร้อยแล้ว!");
-      });
-    }
+    // เช็คสถานะ server ตอนโหลดหน้า
+    checkStatus();
   </script>
 </body>
 </html>
