@@ -7,7 +7,8 @@
     body {
       font-family: "Segoe UI", sans-serif;
       background: #f9fafb;
-      margin: 0; padding: 20px;
+      margin: 0;
+      padding: 20px;
     }
     h1 { color: #2563eb; }
     .form-box, .status-box, .result-box {
@@ -17,19 +18,48 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    label { font-weight: bold; margin-top: 10px; display: block; }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
     select, input, button {
-      margin-top: 5px; margin-bottom: 15px;
-      padding: 8px; border-radius: 5px; border: 1px solid #ddd; width: 100%;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      width: 100%;
     }
     button { cursor: pointer; font-weight: bold; }
     .btn-primary { background: #2563eb; color: white; border: none; }
-    .btn-orange { background: orange; color: white; border: none; }
+    .btn-primary:hover { background: #1e40af; }
+    .btn-orange { background: orange; border: none; color: white; }
+    .btn-green { background: #16a34a; border: none; color: white; }
+    .progress {
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right,#3b82f6,#1e40af);
+      transition: width 0.3s;
+    }
     .status { font-weight: bold; margin-top: 10px; }
-    .green { color: green; } .orange { color: orange; } .red { color: red; }
-    .progress { height: 12px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 10px; }
-    .progress-bar { height: 100%; width: 0%; background: linear-gradient(to right,#3b82f6,#1e40af); transition: width 0.3s; }
-    .content-box { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-top: 15px; background: #f3f4f6; }
+    .green { color: green; }
+    .orange { color: orange; }
+    .red { color: red; }
+    .content-box {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      background: #f3f4f6;
+    }
     .content-box img { max-width: 100%; border-radius: 8px; }
   </style>
 </head>
@@ -52,8 +82,8 @@
 
     <label>โมเดล:</label>
     <select id="model">
-      <option value="gemini-2.5-flash">gemini-2.5-flash ⚡</option>
-      <option value="gemini-2.5-pro">gemini-2.5-pro 💎</option>
+      <option>gemini-2.5-flash</option>
+      <option>gemini-2.5-pro</option>
     </select>
 
     <label>โทนบทความ/ภาพ:</label>
@@ -98,11 +128,30 @@
 <script>
 const API_URL = "https://fb-proxy-m63e.onrender.com";
 
-// Wake Server
+// ================= Check Server =================
+async function checkServerStatus() {
+  const statusDiv = document.getElementById("serverStatus");
+  try {
+    const res = await fetch(API_URL + "/");
+    if (res.ok) {
+      statusDiv.className = "status green";
+      statusDiv.innerText = "🟢 Server ตื่นแล้ว!";
+    } else {
+      statusDiv.className = "status red";
+      statusDiv.innerText = "🔴 Server ปิดอยู่";
+    }
+  } catch (err) {
+    statusDiv.className = "status red";
+    statusDiv.innerText = "🔴 Server ปิดอยู่";
+  }
+}
+
+// ================= Wake Server =================
 async function wakeServer() {
   const statusDiv = document.getElementById("serverStatus");
   const wakeBar = document.getElementById("wakeBar");
   let progress = 0;
+
   statusDiv.className = "status orange";
   statusDiv.innerText = "🟠 กำลังปลุก Server...";
 
@@ -114,16 +163,11 @@ async function wakeServer() {
   }, 1000);
 
   try {
-    const res = await fetch(API_URL + "/");
+    await fetch(API_URL + "/"); // ยิงปลุก
     clearInterval(interval);
     wakeBar.style.width = "100%";
-    if (res.ok) {
-      statusDiv.className = "status green";
-      statusDiv.innerText = "🟢 Server ตื่นแล้ว!";
-    } else {
-      statusDiv.className = "status red";
-      statusDiv.innerText = "🔴 Server ปลุกไม่สำเร็จ";
-    }
+    // ✅ หลังปลุกเสร็จ → ตรวจสถานะจริง
+    checkServerStatus();
   } catch (err) {
     clearInterval(interval);
     wakeBar.style.width = "100%";
@@ -132,7 +176,7 @@ async function wakeServer() {
   }
 }
 
-// Generate Content
+// ================= Generate Content =================
 async function generateContent() {
   const statusBox = document.getElementById("statusBox");
   const resultBox = document.getElementById("resultBox");
@@ -189,6 +233,7 @@ async function generateContent() {
   }
 }
 
+// ================= Show Result =================
 function showResult(data, mode) {
   const resultBox = document.getElementById("resultBox");
 
@@ -222,6 +267,11 @@ function copyToClipboard(text) {
     alert("✅ คัดลอกเรียบร้อยแล้ว");
   });
 }
+
+// ================= On Load =================
+document.addEventListener("DOMContentLoaded", () => {
+  checkServerStatus();
+});
 </script>
 </body>
 </html>
