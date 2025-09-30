@@ -3,98 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Content & Facebook Scheduler</title>
+  <title>✨ AI Content & Facebook Scheduler</title>
   <style>
-    body { font-family: "Segoe UI", Tahoma, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-    h1 { color: #38bdf8; margin-bottom: 20px; }
-    label { display: block; margin: 10px 0 5px; font-weight: bold; }
-    input, select, button, textarea { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: none; font-size: 14px; }
-    button { background: #3b82f6; color: white; cursor: pointer; transition: 0.2s; }
-    button:hover { background: #2563eb; }
-    #result { margin-top: 20px; }
-    .card {
-      background: #1e293b;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      animation: fadeIn 0.5s ease-in-out;
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
     }
-    .card h2 { margin-top: 0; color: #facc15; }
-    .card p { margin: 6px 0; line-height: 1.5; }
-    .card ul { margin: 10px 0; padding-left: 20px; }
-    .img-block { margin-bottom: 20px; }
-    img { max-width: 100%; margin-top: 10px; border-radius: 8px; display: block; }
-    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .download-btn { background: #10b981; }
-    .download-btn:hover { background: #059669; }
-    .copy-btn { background: #f59e0b; }
-    .copy-btn:hover { background: #d97706; }
-    .export-btn { background: #9333ea; }
-    .export-btn:hover { background: #7e22ce; }
-    .hashtag { color: #38bdf8; font-weight: bold; }
-    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+    h1 {
+      color: #38bdf8;
+    }
+    select, input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+    button {
+      background-color: #2563eb;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    .result-box {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background: #1e293b;
+      white-space: pre-wrap;
+    }
+    .copy-btn {
+      margin-top: 10px;
+      background-color: #16a34a;
+    }
+    .copy-btn:hover {
+      background-color: #15803d;
+    }
   </style>
 </head>
 <body>
   <h1>✨ AI Content & Facebook Scheduler</h1>
 
   <label>หัวข้อ (Topic)</label>
-  <input id="topic" placeholder="เช่น การออมเงิน, เคล็ดลับสุขภาพ" />
+  <input type="text" id="topic" placeholder="ใส่หัวข้อ เช่น การออมเงิน">
 
   <label>จำนวน (สูงสุด 5)</label>
-  <select id="count">
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-    <option value="5">5</option>
-  </select>
+  <input type="number" id="count" value="1" min="1" max="5">
 
   <label>โหมด</label>
   <select id="mode">
-    <option value="text">Text (บทความ)</option>
-    <option value="image">Image (ภาพประกอบ)</option>
+    <option value="text">Text (คอนเทนต์โพสต์)</option>
+    <option value="image">Image (Prompt สำหรับภาพ)</option>
   </select>
 
   <label>โมเดล</label>
   <select id="model">
-    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-    <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
+    <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡</option>
+    <option value="gemini-2.0-pro">Gemini 2.0 Pro 🔥</option>
     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
     <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
   </select>
 
   <label>โทนบทความ/ภาพ</label>
   <select id="style">
-    <option value="แบบอ่านเข้าใจง่าย">แบบอ่านเข้าใจง่าย</option>
-    <option value="แนวตลกขำๆ">แนวตลกขำๆ</option>
-    <option value="เป็นทางการ">เป็นทางการ</option>
-    <option value="สร้างแรงบันดาลใจ">สร้างแรงบันดาลใจ</option>
+    <option value="แบบอ่านเข้าใจง่าย">แบบอ่านเข้าใจง่าย 📘</option>
+    <option value="แนวตลกขำๆ">แนวตลกขำๆ 😂</option>
+    <option value="แนวสร้างแรงบันดาลใจ">แนวสร้างแรงบันดาลใจ ✨</option>
+    <option value="แนวโปรโมทสินค้า">แนวโปรโมทสินค้า 🛍️</option>
   </select>
 
   <label>ภาษา</label>
   <select id="language">
-    <option value="th">ภาษาไทย</option>
-    <option value="en">English</option>
+    <option value="ไทย">ภาษาไทย 🇹🇭</option>
+    <option value="อังกฤษ">English 🇺🇸</option>
   </select>
 
   <label>แพลตฟอร์ม</label>
   <select id="platform">
-    <option value="facebook">Facebook</option>
-    <option value="tiktok">TikTok</option>
-    <option value="linkedin">LinkedIn</option>
-    <option value="instagram">Instagram</option>
+    <option value="Facebook">Facebook</option>
+    <option value="Instagram">Instagram</option>
+    <option value="Twitter">Twitter (X)</option>
   </select>
 
-  <button onclick="generate()">Generate</button>
+  <button onclick="generateContent()">Generate</button>
 
-  <h2>ผลลัพธ์</h2>
-  <div id="result"></div>
-  <button id="exportAllBtn" class="export-btn" style="display:none;" onclick="exportAll()">⬇ Export ทั้งหมด</button>
+  <div id="resultBox" class="result-box" style="display:none;">
+    <h3>📄 ผลลัพธ์</h3>
+    <div id="results"></div>
+    <button id="copyBtn" class="copy-btn" style="display:none;" onclick="copyResult()">📋 Copy</button>
+  </div>
 
   <script>
-    async function generate() {
+    const proxyBase = "https://fb-proxy-m63e.onrender.com"; // ✅ Proxy URL
+
+    async function generateContent() {
       const topic = document.getElementById("topic").value;
       const count = document.getElementById("count").value;
       const model = document.getElementById("model").value;
@@ -103,135 +112,36 @@
       const language = document.getElementById("language").value;
       const platform = document.getElementById("platform").value;
 
-      const proxyBase = localStorage.getItem("proxyBase") || "https://fb-proxy-xxxx.onrender.com";
-
-      document.getElementById("result").innerHTML = "⏳ กำลังสร้าง...";
-      document.getElementById("exportAllBtn").style.display = "none";
+      document.getElementById("results").innerText = "⏳ กำลังสร้างเนื้อหา...";
+      document.getElementById("resultBox").style.display = "block";
 
       try {
         const response = await fetch(proxyBase + "/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model, style, mode, language, platform })
+          body: JSON.stringify({ topic, count, model, style, mode, language, platform }),
         });
 
         const data = await response.json();
-        const resultDiv = document.getElementById("result");
-        resultDiv.innerHTML = "";
 
         if (mode === "text") {
-          let candidates = [];
-          if (data.text) {
-            candidates = data.text;
-          } else if (data.data && data.data.candidates) {
-            candidates = data.data.candidates.map(c => c.content.parts[0].text);
-          }
-
-          if (candidates.length > 0) {
-            let allTexts = [];
-            candidates.forEach((content, i) => {
-              allTexts.push(content);
-
-              const card = document.createElement("div");
-              card.className = "card";
-
-              let htmlContent = content
-                .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-                .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-                .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-                .replace(/\*\*(.*?)\*\*/gim, "<b>$1</b>")
-                .replace(/\n\* (.*?)/gim, "<ul><li>$1</li></ul>")
-                .replace(/\n- (.*?)/gim, "<ul><li>$1</li></ul>")
-                .replace(/#(\S+)/g, '<span class="hashtag">#$1</span>')
-                .replace(/\n/gim, "<br>")
-                .replace(/เที่ยว|ท่องเที่ยว/g, "🌄 $&")
-                .replace(/อาหาร|กิน|ข้าว/g, "🍜 $&")
-                .replace(/งาน|เทศกาล|ปาร์ตี้/g, "🎉 $&")
-                .replace(/สุขภาพ|ออกกำลังกาย|ฟิต/g, "💪 $&")
-                .replace(/การเงิน|เงิน|ลงทุน/g, "💰 $&")
-                .replace(/การเดินทาง|เครื่องบิน|รถ/g, "✈️ $&");
-
-              card.innerHTML = `<h2>บทความที่ ${i+1}</h2><div>${htmlContent}</div>`;
-
-              const btnRow = document.createElement("div");
-              btnRow.className = "btn-row";
-
-              const copyBtn = document.createElement("button");
-              copyBtn.className = "copy-btn";
-              copyBtn.innerText = "📋 Copy";
-              copyBtn.onclick = () => copyToClipboard(content);
-
-              btnRow.appendChild(copyBtn);
-              card.appendChild(btnRow);
-              resultDiv.appendChild(card);
-            });
-
-            if (allTexts.length > 0) {
-              document.getElementById("exportAllBtn").style.display = "block";
-              document.getElementById("exportAllBtn").dataset.texts = JSON.stringify(allTexts);
-            }
-          } else {
-            resultDiv.innerText = "⚠️ ไม่พบผลลัพธ์จาก Gemini";
-          }
-        } else if (mode === "image") {
-          if (data.data && data.data.images) {
-            let allImages = [];
-            data.data.images.forEach((img, i) => {
-              allImages.push(img.b64);
-
-              const block = document.createElement("div");
-              block.className = "img-block";
-
-              const el = document.createElement("img");
-              el.src = "data:image/png;base64," + img.b64;
-
-              const btnRow = document.createElement("div");
-              btnRow.className = "btn-row";
-
-              const btn = document.createElement("button");
-              btn.className = "download-btn";
-              btn.innerText = "⬇ ดาวน์โหลดรูป " + (i + 1);
-              btn.onclick = () => downloadImage(img.b64, `gemini_image_${i + 1}.png`);
-
-              btnRow.appendChild(btn);
-              block.appendChild(el);
-              block.appendChild(btnRow);
-              resultDiv.appendChild(block);
-            });
-          } else {
-            resultDiv.innerText = JSON.stringify(data, null, 2);
-          }
+          document.getElementById("results").innerText = data.text.join("\n\n---\n\n");
+        } else {
+          document.getElementById("results").innerText = data.prompt;
         }
+
+        document.getElementById("copyBtn").style.display = "inline-block";
+
       } catch (err) {
-        document.getElementById("result").innerText = "❌ Error: " + err.message;
+        document.getElementById("results").innerText = "❌ Error: " + err.message;
       }
     }
 
-    function copyToClipboard(text) {
+    function copyResult() {
+      const text = document.getElementById("results").innerText;
       navigator.clipboard.writeText(text).then(() => {
-        alert("✅ คัดลอกข้อความเรียบร้อยแล้ว!");
+        alert("✅ คัดลอกผลลัพธ์เรียบร้อยแล้ว!");
       });
-    }
-
-    function downloadImage(base64Data, filename) {
-      const link = document.createElement("a");
-      link.href = "data:image/png;base64," + base64Data;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function exportAll() {
-      const btn = document.getElementById("exportAllBtn");
-      if (btn.dataset.texts) {
-        const texts = JSON.parse(btn.dataset.texts);
-        const blob = new Blob([texts.join("\n\n---\n\n")], { type: "text/plain" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "ai_contents.txt";
-        link.click();
-      }
     }
   </script>
 </body>
