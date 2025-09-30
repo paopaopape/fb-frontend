@@ -2,166 +2,158 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>✨ AI Content & Image Generator</title>
+  <title>⚡ AI Content & Image Generator</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f9fafb; padding: 20px; }
-    h1 { color: #0066cc; }
-    .card { background: white; padding: 20px; border-radius: 8px; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
-    input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
-    button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; }
-    button.generate { background: #0066cc; color: white; }
-    button.generate:hover { background: #004a99; }
-    button.wake { background: #28a745; color: white; }
-    button.wake:hover { background: #1e7e34; }
-    .status { padding: 10px; margin-top: 10px; border-radius: 5px; font-weight: bold; text-align: center; }
-    .green { background: #d4edda; color: #155724; }
-    .orange { background: #fff3cd; color: #856404; }
-    .red { background: #f8d7da; color: #721c24; }
-    pre { background: #1e1e1e; color: #33ff33; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 20px; }
+    h1 { color: #2563eb; }
+    .container { max-width: 900px; margin: auto; }
+    .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    select, input, button { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc; }
+    button { cursor: pointer; background: #2563eb; color: #fff; font-weight: bold; border: none; }
+    button:hover { background: #1e40af; }
+
+    .status { padding: 10px; border-radius: 6px; margin-top: 10px; text-align: center; font-weight: bold; }
+    .green { background: #d1fae5; color: #065f46; }
+    .red { background: #fee2e2; color: #991b1b; }
+    .orange { background: #ffedd5; color: #9a3412; }
+
+    /* Progress Bar */
+    .progress-container { width: 100%; background: #e5e7eb; border-radius: 8px; overflow: hidden; margin-top: 10px; display: none; }
+    .progress-bar { height: 20px; width: 0%; background: linear-gradient(90deg, #2563eb, #3b82f6); text-align: center; color: #fff; font-size: 12px; font-weight: bold; line-height: 20px; }
   </style>
 </head>
 <body>
-  <h1>✨ AI Content & Image Generator</h1>
+  <div class="container">
+    <h1>✨ AI Content & Image Generator</h1>
 
-  <!-- ฟอร์มสร้างคอนเทนต์ -->
-  <div class="card">
-    <label>หัวข้อ (Topic):</label>
-    <input type="text" id="topic" placeholder="เช่น เที่ยวเมืองเลย, การเก็บเงิน...">
+    <div class="card">
+      <label>หัวข้อ (Topic):</label>
+      <input id="topic" placeholder="เช่น เที่ยวเมืองเลย, การเก็บเงิน..." />
 
-    <label>จำนวน (สูงสุด 5):</label>
-    <input type="number" id="count" min="1" max="5" value="1">
+      <label>จำนวน (สูงสุด 5):</label>
+      <input id="num" type="number" min="1" max="5" value="1" />
 
-    <label>โหมด:</label>
-    <select id="mode">
-      <option value="text">Text (คอนเทนต์โพสต์)</option>
-      <option value="image">Image (ภาพประกอบ)</option>
-    </select>
+      <label>โหมด:</label>
+      <select id="mode">
+        <option value="text">Text (คอนเทนต์โพสต์)</option>
+        <option value="image">Image (ภาพประกอบ)</option>
+      </select>
 
-    <label>โมเดล:</label>
-    <select id="model">
-      <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡</option>
-      <option value="gemini-2.0-pro">Gemini 2.0 Pro 🧠</option>
-    </select>
+      <label>โมเดล:</label>
+      <select id="model">
+        <option>Gemini 2.0 Flash ⚡</option>
+        <option>Gemini 1.5 Pro</option>
+        <option>Gemini 1.5 Flash</option>
+      </select>
 
-    <label>โทนบทความ/ภาพ:</label>
-    <select id="tone">
-      <option value="ง่ายๆ">แบบอ่านเข้าใจง่าย 📘</option>
-      <option value="ตลก">แนวตลกขำๆ 😂</option>
-      <option value="จริงจัง">แนวจริงจัง/เป็นทางการ 🏛️</option>
-      <option value="สร้างแรงบันดาลใจ">สร้างแรงบันดาลใจ ✨</option>
-    </select>
+      <label>โทนบทความ/ภาพ:</label>
+      <select id="tone">
+        <option>แบบอ่านเข้าใจง่าย 📘</option>
+        <option>แนวสนุก ตลกขำๆ 😂</option>
+        <option>จริงจังทางการ 🏛️</option>
+        <option>สร้างแรงบันดาลใจ ✨</option>
+      </select>
 
-    <label>ภาษา:</label>
-    <select id="lang">
-      <option value="th">ภาษาไทย 🇹🇭</option>
-      <option value="en">English 🇬🇧</option>
-    </select>
+      <label>ภาษา:</label>
+      <select id="lang">
+        <option>ภาษาไทย TH</option>
+        <option>English</option>
+      </select>
 
-    <label>แพลตฟอร์ม:</label>
-    <select id="platform">
-      <option value="facebook">Facebook</option>
-      <option value="instagram">Instagram</option>
-      <option value="twitter">Twitter</option>
-    </select>
+      <label>แพลตฟอร์ม:</label>
+      <select id="platform">
+        <option>Facebook</option>
+        <option>Instagram</option>
+        <option>Twitter (X)</option>
+      </select>
 
-    <button class="generate" onclick="generateContent()">Generate Content</button>
-  </div>
+      <button onclick="generateContent()">Generate Content</button>
+    </div>
 
-  <!-- สถานะ Server -->
-  <div class="card">
-    <h3>🖥️ Server Status</h3>
-    <button class="wake" onclick="wakeServer()">Wake Server</button>
-    <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
-  </div>
+    <div class="card">
+      <h3>🖥️ Server Status</h3>
+      <button style="background:#16a34a;" onclick="wakeServer()">Wake Server</button>
+      <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
 
-  <!-- ผลลัพธ์ -->
-  <div id="result" class="card" style="display:none;">
-    <h2>ผลลัพธ์:</h2>
-    <p id="postText"></p>
-    <pre id="imagePrompt"></pre>
-    <button onclick="copyResult()">📋 Copy</button>
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar">0%</div>
+      </div>
+    </div>
   </div>
 
   <script>
-    const API_URL = "https://YOUR-RENDER-URL.onrender.com"; // 👈 เปลี่ยนเป็น proxy ของคุณ
+    const API_URL = "https://fb-proxy-m63e.onrender.com"; // proxy URL ของคุณ
 
     async function checkStatus() {
-      const statusBox = document.getElementById("serverStatus");
       try {
         const res = await fetch(API_URL + "/");
         if (res.ok) {
-          statusBox.className = "status green";
-          statusBox.innerText = "🟢 Server ตื่นพร้อมใช้งาน";
+          document.getElementById("serverStatus").className = "status green";
+          document.getElementById("serverStatus").innerText = "🟢 Server พร้อมใช้งาน";
+          document.getElementById("progressContainer").style.display = "none";
         } else {
-          statusBox.className = "status red";
-          statusBox.innerText = "🔴 Server ปิดอยู่";
+          document.getElementById("serverStatus").className = "status red";
+          document.getElementById("serverStatus").innerText = "🔴 Server ปิดอยู่";
         }
       } catch {
-        statusBox.className = "status red";
-        statusBox.innerText = "🔴 Server ปิดอยู่";
+        document.getElementById("serverStatus").className = "status red";
+        document.getElementById("serverStatus").innerText = "🔴 Server ปิดอยู่";
       }
     }
 
     async function wakeServer() {
       const statusBox = document.getElementById("serverStatus");
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+
       statusBox.className = "status orange";
       statusBox.innerText = "🟠 กำลังปลุก Server...";
-      try {
-        const res = await fetch(API_URL + "/");
-        if (res.ok) {
-          statusBox.className = "status green";
-          statusBox.innerText = "🟢 Server ตื่นพร้อมใช้งาน";
-        } else {
+
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
+      progressBar.innerText = "0%";
+
+      // ยิง request ไปปลุก
+      fetch(API_URL + "/").catch(() => {});
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        if (progress > 100) progress = 100;
+        progressBar.style.width = progress + "%";
+        progressBar.innerText = progress + "%";
+      }, 1500);
+
+      // ลองเช็ค status ทุก 10 วิ
+      let retries = 0;
+      const checkInterval = setInterval(async () => {
+        retries++;
+        try {
+          const res = await fetch(API_URL + "/");
+          if (res.ok) {
+            clearInterval(interval);
+            clearInterval(checkInterval);
+            progressBar.style.width = "100%";
+            progressBar.innerText = "100%";
+            statusBox.className = "status green";
+            statusBox.innerText = "🟢 Server พร้อมใช้งาน";
+          }
+        } catch (e) {}
+        if (retries > 6) { // รอรวม ~1 นาที
+          clearInterval(interval);
+          clearInterval(checkInterval);
           statusBox.className = "status red";
-          statusBox.innerText = "🔴 Server ปิดอยู่";
+          statusBox.innerText = "🔴 Server ยังไม่ตื่น (ลองใหม่อีกครั้ง)";
         }
-      } catch {
-        statusBox.className = "status red";
-        statusBox.innerText = "🔴 Server ปิดอยู่";
-      }
+      }, 10000);
     }
 
-    async function generateContent() {
-      const topic = document.getElementById("topic").value;
-      const count = document.getElementById("count").value;
-      const model = document.getElementById("model").value;
-      const mode = document.getElementById("mode").value;
-      const tone = document.getElementById("tone").value;
-      const lang = document.getElementById("lang").value;
-      const platform = document.getElementById("platform").value;
-
-      if (!topic) return alert("กรุณากรอก Topic ก่อน");
-
-      document.getElementById("result").style.display = "block";
-      document.getElementById("postText").innerText = "⏳ กำลังสร้างโพสต์...";
-      document.getElementById("imagePrompt").innerText = "";
-
-      try {
-        const res = await fetch(API_URL + "/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model, mode, tone, lang, platform })
-        });
-        const data = await res.json();
-
-        const text = data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "❌ ไม่มีผลลัพธ์";
-        document.getElementById("postText").innerText = text;
-        document.getElementById("imagePrompt").innerText = mode === "image" ? "Image Prompt: " + topic : "";
-      } catch (e) {
-        document.getElementById("postText").innerText = "❌ Error: " + e.message;
-      }
+    function generateContent() {
+      alert("🚀 ตัวอย่าง: ตรงนี้จะไปเรียก API เพื่อสร้าง Content");
     }
 
-    function copyResult() {
-      const text = document.getElementById("postText").innerText;
-      navigator.clipboard.writeText(text);
-      alert("✅ คัดลอกเรียบร้อยแล้ว!");
-    }
-
-    // เช็คสถานะ server ตอนโหลดหน้า
+    // โหลดหน้ามา เช็คสถานะ server ทันที
     checkStatus();
   </script>
 </body>
