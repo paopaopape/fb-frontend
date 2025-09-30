@@ -9,88 +9,48 @@
       background: #f9fafb;
       margin: 0;
       padding: 20px;
-      font-size: 18px; /* ✅ ขยายตัวอักษร */
+      font-size: 18px;
     }
-    h1 {
-      color: #2563eb;
-      font-size: 26px;
-      margin-bottom: 20px;
-    }
+    h1 { color: #2563eb; }
     .form-box, .status-box, .result-box {
       background: #fff;
-      border-radius: 10px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     label {
       font-weight: bold;
-      margin-top: 12px;
+      margin-top: 10px;
       display: block;
-      font-size: 17px;
     }
     select, input, button {
-      margin-top: 6px;
+      margin-top: 5px;
       margin-bottom: 15px;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
       width: 100%;
       font-size: 16px;
     }
-    button {
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 17px;
-    }
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-      border: none;
-    }
+    button { cursor: pointer; font-weight: bold; font-size: 16px; }
+    .btn-primary { background: #2563eb; color: white; border: none; }
     .btn-primary:hover { background: #1e40af; }
     .btn-orange { background: orange; border: none; color: white; }
     .btn-green { background: #16a34a; border: none; color: white; }
-
-    .progress {
-      height: 14px;
-      background: #e5e7eb;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-top: 12px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(to right,#3b82f6,#1e40af);
-      transition: width 0.3s;
-    }
-    .status { font-weight: bold; margin-top: 12px; font-size: 16px; }
+    .status { font-weight: bold; margin-top: 10px; }
     .green { color: green; }
     .orange { color: orange; }
     .red { color: red; }
-
     .content-box {
       border: 1px solid #ddd;
-      padding: 18px;
+      padding: 15px;
       border-radius: 8px;
       margin-top: 15px;
       background: #f3f4f6;
       font-size: 16px;
-      line-height: 1.6;
     }
     .content-box img { max-width: 100%; border-radius: 8px; }
-    .action-btns {
-      margin-top: 15px;
-      display: flex;
-      gap: 10px;
-    }
-    .action-btns button {
-      flex: 1;
-    }
   </style>
 </head>
 <body>
@@ -139,20 +99,18 @@
     <button class="btn-primary" onclick="generateContent()">🚀 Generate Content</button>
   </div>
 
+  <!-- ผลลัพธ์ -->
+  <div class="result-box">
+    <h3>📄 ผลลัพธ์</h3>
+    <div id="statusBox"></div>
+    <div id="resultBox"></div>
+  </div>
+
   <!-- Server Status -->
   <div class="status-box">
     <h3>💻 Server Status</h3>
     <button class="btn-orange" onclick="wakeServer()">Wake Server</button>
     <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
-    <div class="progress"><div id="wakeBar" class="progress-bar"></div></div>
-  </div>
-
-  <!-- ผลลัพธ์ -->
-  <div class="result-box">
-    <h3>📄 ผลลัพธ์</h3>
-    <div id="statusBox"></div>
-    <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
-    <div id="resultBox"></div>
   </div>
 
 <script>
@@ -179,27 +137,12 @@ async function checkServerStatus() {
 // ================= Wake Server =================
 async function wakeServer() {
   const statusDiv = document.getElementById("serverStatus");
-  const wakeBar = document.getElementById("wakeBar");
-  let progress = 0;
-
   statusDiv.className = "status orange";
   statusDiv.innerText = "🟠 กำลังปลุก Server...";
-
-  const interval = setInterval(() => {
-    if (progress < 90) {
-      progress += 10;
-      wakeBar.style.width = progress + "%";
-    }
-  }, 1000);
-
   try {
-    await fetch(API_URL + "/"); // ยิงปลุก
-    clearInterval(interval);
-    wakeBar.style.width = "100%";
+    await fetch(API_URL + "/");
     checkServerStatus();
   } catch (err) {
-    clearInterval(interval);
-    wakeBar.style.width = "100%";
     statusDiv.className = "status red";
     statusDiv.innerText = "🔴 Error: " + err.message;
   }
@@ -209,20 +152,10 @@ async function wakeServer() {
 async function generateContent() {
   const statusBox = document.getElementById("statusBox");
   const resultBox = document.getElementById("resultBox");
-  const bar = document.getElementById("progressBar");
 
   statusBox.className = "status orange";
   statusBox.innerText = "🟠 กำลังสร้างคอนเทนต์...";
   resultBox.innerHTML = "";
-  bar.style.width = "0%";
-
-  let progress = 0;
-  const progressInterval = setInterval(() => {
-    if (progress < 90) {
-      progress += 10;
-      bar.style.width = progress + "%";
-    }
-  }, 500);
 
   try {
     const res = await fetch(API_URL + "/generate", {
@@ -242,11 +175,9 @@ async function generateContent() {
     if (!res.ok) throw new Error("HTTP " + res.status);
 
     const data = await res.json();
-    clearInterval(progressInterval);
-    bar.style.width = "100%";
 
     if (data.status === "ok") {
-      showResult(data, document.getElementById("mode").value);
+      showResult(data.data, document.getElementById("mode").value);
       statusBox.className = "status green";
       statusBox.innerText = "🟢 เสร็จแล้ว!";
     } else {
@@ -255,8 +186,6 @@ async function generateContent() {
       resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
     }
   } catch (err) {
-    clearInterval(progressInterval);
-    bar.style.width = "100%";
     statusBox.className = "status red";
     statusBox.innerText = "🔴 Error: " + err.message;
   }
@@ -267,24 +196,21 @@ function showResult(data, mode) {
   const resultBox = document.getElementById("resultBox");
 
   if (mode.includes("Text")) {
-    const text = data?.text || "❌ ไม่มีผลลัพธ์";
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "❌ ไม่มีผลลัพธ์";
     resultBox.innerHTML = `
       <div class="content-box">
         <p>${text.replace(/\n/g, "<br>")}</p>
-        <div class="action-btns">
-          <button onclick="copyToClipboard(\`${text}\`)">📋 Copy</button>
-        </div>
+        <button onclick="copyToClipboard(\`${text}\`)">📋 Copy</button>
       </div>`;
   } else if (mode.includes("Image")) {
-    const imagePrompt = data?.text || null;
-    if (imagePrompt) {
+    const imageUrl = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    if (imageUrl) {
       resultBox.innerHTML = `
         <div class="content-box">
-          <p><b>🎨 Image Prompt:</b></p>
-          <p>${imagePrompt}</p>
-          <div class="action-btns">
-            <button onclick="copyToClipboard(\`${imagePrompt}\`)">📋 Copy</button>
-          </div>
+          <img src="${imageUrl}" alt="Generated Image"/>
+          <a href="${imageUrl}" download="gemini-image.png">
+            <button>⬇️ Download</button>
+          </a>
         </div>`;
     } else {
       resultBox.innerHTML = `<p>❌ ไม่มีรูปภาพ</p>`;
