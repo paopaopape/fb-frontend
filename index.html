@@ -1,303 +1,274 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>✨ AI Content & Image Generator</title>
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
-      background: #f4f6f9;
+      background: #f9fafb;
       margin: 0;
-      padding: 0;
-      color: #333;
+      padding: 20px;
     }
-    header {
-      background: #0d47a1;
-      color: #fff;
-      padding: 15px 30px;
-      font-size: 1.6rem;
-      font-weight: bold;
+    h1 {
+      color: #2563eb;
     }
-    .container {
-      max-width: 900px;
-      margin: 30px auto;
+    .form-box, .status-box, .result-box {
       background: #fff;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     label {
+      font-weight: bold;
+      margin-top: 10px;
       display: block;
-      margin: 15px 0 5px;
-      font-weight: 600;
     }
-    input, select {
+    select, input, button {
+      margin-top: 5px;
+      margin-bottom: 15px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
       width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
     }
     button {
-      margin-top: 20px;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
       cursor: pointer;
-    }
-    .btn-primary { background: #1976d2; color: #fff; }
-    .btn-primary:hover { background: #1259a6; }
-    .btn-copy { background: #43a047; color: #fff; margin-left: 10px; }
-    .btn-copy:hover { background: #2e7d32; }
-    .btn-wake { background: #ff9800; color: #fff; }
-    .btn-wake:hover { background: #ef6c00; }
-    .status {
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 6px;
       font-weight: bold;
     }
-    .green { background: #e8f5e9; color: #2e7d32; }
-    .orange { background: #fff3e0; color: #ef6c00; }
-    .red { background: #ffebee; color: #c62828; }
-    .progress-container {
-      margin-top: 15px;
-      background: #eee;
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      border: none;
+    }
+    .btn-primary:hover { background: #1e40af; }
+    .btn-orange {
+      background: orange;
+      border: none;
+      color: white;
+    }
+    .btn-green {
+      background: #16a34a;
+      border: none;
+      color: white;
+    }
+    .progress {
+      height: 12px;
+      background: #e5e7eb;
       border-radius: 6px;
       overflow: hidden;
-      height: 20px;
+      margin-top: 10px;
     }
     .progress-bar {
       height: 100%;
-      width: 0;
-      background: linear-gradient(90deg, #42a5f5, #0d47a1);
+      width: 0%;
+      background: linear-gradient(to right,#3b82f6,#1e40af);
       transition: width 0.3s;
     }
-    .result-card {
-      margin-top: 25px;
-      padding: 20px;
-      border-radius: 8px;
-      background: #fafafa;
+    .status { font-weight: bold; margin-top: 10px; }
+    .green { color: green; }
+    .orange { color: orange; }
+    .red { color: red; }
+    .content-box {
       border: 1px solid #ddd;
-    }
-    .result-card h3 { margin-top: 0; color: #0d47a1; }
-    pre {
-      background: #111;
-      color: #0f0;
-      padding: 12px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-size: 0.9rem;
-    }
-    .image-preview {
-      margin-top: 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    .image-preview img {
-      max-width: 280px;
+      padding: 15px;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      margin-top: 15px;
+      background: #f3f4f6;
     }
+    .content-box img { max-width: 100%; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <header>✨ AI Content & Image Generator</header>
+  <h1>✨ AI Content & Image Generator</h1>
 
-  <div class="container">
-    <!-- ฟอร์ม -->
+  <!-- ฟอร์ม -->
+  <div class="form-box">
     <label>หัวข้อ (Topic):</label>
-    <input type="text" id="topic" placeholder="เช่น เที่ยวเมืองเลย, การเก็บเงิน..." />
+    <input id="topic" placeholder="เช่น เที่ยวเมืองเลย, การเก็บเงิน..." />
 
     <label>จำนวน (สูงสุด 5):</label>
-    <input type="number" id="num" min="1" max="5" value="1" />
+    <input id="count" type="number" min="1" max="5" value="1" />
 
     <label>โหมด:</label>
     <select id="mode">
-      <option value="Text">Text (คอนเทนต์โพสต์)</option>
-      <option value="Image">Image (ภาพประกอบ)</option>
+      <option>Text (คอนเทนต์โพสต์)</option>
+      <option>Image (ภาพประกอบ)</option>
     </select>
 
     <label>โมเดล:</label>
     <select id="model">
-      <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡</option>
-      <option value="gemini-2.0-pro">Gemini 2.0 Pro 🧠</option>
+      <option>gemini-2.0-flash</option>
+      <option>gemini-2.0-pro</option>
     </select>
 
     <label>โทนบทความ/ภาพ:</label>
     <select id="tone">
-      <option value="เข้าใจง่าย">แบบอ่านเข้าใจง่าย 📘</option>
-      <option value="ตลก">แนวตลกขำๆ 😂</option>
-      <option value="จริงจัง">แนวจริงจัง 🔥</option>
-      <option value="สร้างแรงบันดาลใจ">สร้างแรงบันดาลใจ ✨</option>
+      <option>แบบอ่านเข้าใจง่าย 📘</option>
+      <option>แนวตลกขำๆ 😅</option>
+      <option>แนวทางการตลาด 💼</option>
     </select>
 
     <label>ภาษา:</label>
     <select id="lang">
-      <option value="th">ภาษาไทย 🇹🇭</option>
-      <option value="en">English 🇬🇧</option>
+      <option>ภาษาไทย 🇹🇭</option>
+      <option>English 🇬🇧</option>
     </select>
 
     <label>แพลตฟอร์ม:</label>
     <select id="platform">
-      <option value="Facebook">Facebook</option>
-      <option value="Instagram">Instagram</option>
-      <option value="Twitter">Twitter</option>
+      <option>Facebook</option>
+      <option>Instagram</option>
+      <option>Website</option>
     </select>
 
     <button class="btn-primary" onclick="generateContent()">🚀 Generate Content</button>
+  </div>
 
-    <!-- Wake Server -->
-    <h3>🖥️ Server Status</h3>
-    <button class="btn-wake" onclick="wakeServer()">Wake Server</button>
+  <!-- Server Status -->
+  <div class="status-box">
+    <h3>💻 Server Status</h3>
+    <button class="btn-orange" onclick="wakeServer()">Wake Server</button>
     <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
-    <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+    <div class="progress"><div id="wakeBar" class="progress-bar"></div></div>
+  </div>
 
-    <!-- ผลลัพธ์ -->
+  <!-- ผลลัพธ์ -->
+  <div class="result-box">
+    <h3>📄 ผลลัพธ์</h3>
+    <div id="statusBox"></div>
+    <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
     <div id="resultBox"></div>
   </div>
 
-  <script>
-    const API_URL = "https://fb-proxy-m63e.onrender.com";
+<script>
+const API_URL = "https://fb-proxy-m63e.onrender.com";
 
-    // ฟังก์ชัน Wake Server
-    async function wakeServer() {
-      const statusBox = document.getElementById("serverStatus");
-      const bar = document.getElementById("progressBar");
-      let progress = 0;
-      statusBox.className = "status orange";
-      statusBox.innerText = "🟠 กำลังปลุก Server...";
-      bar.style.width = "0%";
+// =============== Wake Server ===============
+async function wakeServer() {
+  const statusDiv = document.getElementById("serverStatus");
+  const wakeBar = document.getElementById("wakeBar");
+  let progress = 0;
+  statusDiv.className = "status orange";
+  statusDiv.innerText = "🟠 กำลังปลุก Server...";
 
-      // Progress Bar 0–100%
-      const progressInterval = setInterval(() => {
-        progress += 20;
-        if (progress > 100) progress = 100;
-        bar.style.width = progress + "%";
-      }, 1000);
-
-      // ตรวจสอบสถานะทุก 10 วิ (รวม 1 นาที)
-      let checks = 0;
-      const checkInterval = setInterval(async () => {
-        checks++;
-        try {
-          const res = await fetch(API_URL + "/");
-          if (res.ok) {
-            clearInterval(progressInterval);
-            clearInterval(checkInterval);
-            statusBox.className = "status green";
-            statusBox.innerText = "🟢 Server ตื่นแล้ว";
-            bar.style.width = "100%";
-          }
-        } catch (err) {
-          console.log("ยังไม่ตื่น:", err);
-        }
-        if (checks >= 6) {
-          clearInterval(progressInterval);
-          clearInterval(checkInterval);
-          statusBox.className = "status red";
-          statusBox.innerText = "🔴 Server ปลุกไม่สำเร็จ";
-        }
-      }, 10000);
+  const interval = setInterval(() => {
+    if (progress < 90) {
+      progress += 10;
+      wakeBar.style.width = progress + "%";
     }
+  }, 1000);
 
-    // ฟังก์ชัน Generate Content
-    async function generateContent() {
-      const topic = document.getElementById("topic").value;
-      const num = document.getElementById("num").value;
-      const mode = document.getElementById("mode").value;
-      const model = document.getElementById("model").value;
-      const tone = document.getElementById("tone").value;
-      const lang = document.getElementById("lang").value;
-      const platform = document.getElementById("platform").value;
-      const statusBox = document.getElementById("serverStatus");
-      const resultBox = document.getElementById("resultBox");
-      const bar = document.getElementById("progressBar");
-
-      if (!topic) {
-        alert("⚠️ กรุณาใส่หัวข้อก่อนครับ");
-        return;
-      }
-
-      statusBox.className = "status orange";
-      statusBox.innerText = "🟠 กำลังสร้างคอนเทนต์...";
-      bar.style.width = "0%";
-
-      let progress = 0;
-      const progressInterval = setInterval(() => {
-        progress += 15;
-        if (progress > 100) progress = 100;
-        bar.style.width = progress + "%";
-      }, 800);
-
-      try {
-        const res = await fetch(API_URL + "/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, num, mode, model, tone, lang, platform })
-        });
-
-        const data = await res.json();
-        clearInterval(progressInterval);
-
-        if (data.status === "ok") {
-          showResult(data.data, mode);
-          statusBox.className = "status green";
-          statusBox.innerText = "🟢 สร้างเสร็จแล้ว!";
-          bar.style.width = "100%";
-        } else {
-          statusBox.className = "status red";
-          statusBox.innerText = "🔴 Error: " + (data.error || "ไม่ทราบสาเหตุ");
-        }
-      } catch (err) {
-        clearInterval(progressInterval);
-        console.error(err);
-        statusBox.className = "status red";
-        statusBox.innerText = "🔴 Error: ติดต่อ API ไม่สำเร็จ";
-      }
+  try {
+    const res = await fetch(API_URL + "/");
+    clearInterval(interval);
+    wakeBar.style.width = "100%";
+    if (res.ok) {
+      statusDiv.className = "status green";
+      statusDiv.innerText = "🟢 Server ตื่นแล้ว!";
+    } else {
+      statusDiv.className = "status red";
+      statusDiv.innerText = "🔴 Server ปลุกไม่สำเร็จ";
     }
+  } catch (err) {
+    clearInterval(interval);
+    wakeBar.style.width = "100%";
+    statusDiv.className = "status red";
+    statusDiv.innerText = "🔴 Error: " + err.message;
+  }
+}
 
-    // แสดงผลลัพธ์
-    function showResult(result, mode) {
-      const resultBox = document.getElementById("resultBox");
-      resultBox.innerHTML = "";
+// =============== Generate Content ===============
+async function generateContent() {
+  const statusBox = document.getElementById("statusBox");
+  const resultBox = document.getElementById("resultBox");
+  const bar = document.getElementById("progressBar");
 
-      const card = document.createElement("div");
-      card.className = "result-card";
+  statusBox.className = "status orange";
+  statusBox.innerText = "🟠 กำลังสร้างคอนเทนต์...";
+  resultBox.innerHTML = "";
+  bar.style.width = "0%";
 
-      const title = document.createElement("h3");
-      title.innerText = "📄 ผลลัพธ์";
-      card.appendChild(title);
-
-      if (mode === "Image" && result.images) {
-        const imgContainer = document.createElement("div");
-        imgContainer.className = "image-preview";
-        result.images.forEach(url => {
-          const img = document.createElement("img");
-          img.src = url;
-          imgContainer.appendChild(img);
-        });
-        card.appendChild(imgContainer);
-      } else {
-        const pre = document.createElement("pre");
-        pre.innerText = typeof result === "string" ? result : JSON.stringify(result, null, 2);
-        card.appendChild(pre);
-
-        const copyBtn = document.createElement("button");
-        copyBtn.innerText = "📋 Copy";
-        copyBtn.className = "btn-copy";
-        copyBtn.onclick = () => {
-          navigator.clipboard.writeText(pre.innerText);
-          copyBtn.innerText = "✅ Copied!";
-          setTimeout(() => copyBtn.innerText = "📋 Copy", 2000);
-        };
-        card.appendChild(copyBtn);
-      }
-
-      resultBox.appendChild(card);
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    if (progress < 90) {
+      progress += 10;
+      bar.style.width = progress + "%";
     }
-  </script>
+  }, 500);
+
+  try {
+    const res = await fetch(API_URL + "/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topic: document.getElementById("topic").value,
+        count: document.getElementById("count").value,
+        model: document.getElementById("model").value,
+        mode: document.getElementById("mode").value,
+        tone: document.getElementById("tone").value,
+        lang: document.getElementById("lang").value,
+        platform: document.getElementById("platform").value,
+      }),
+    });
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+
+    const data = await res.json();
+    clearInterval(progressInterval);
+    bar.style.width = "100%";
+
+    if (data.status === "ok") {
+      showResult(data.data, document.getElementById("mode").value);
+      statusBox.className = "status green";
+      statusBox.innerText = "🟢 เสร็จแล้ว!";
+    } else {
+      statusBox.className = "status red";
+      statusBox.innerText = "🔴 Error: " + (data.error || "ไม่ทราบสาเหตุ");
+      resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    }
+  } catch (err) {
+    clearInterval(progressInterval);
+    bar.style.width = "100%";
+    statusBox.className = "status red";
+    statusBox.innerText = "🔴 Error: " + err.message;
+  }
+}
+
+function showResult(data, mode) {
+  const resultBox = document.getElementById("resultBox");
+
+  if (mode.includes("Text")) {
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "❌ ไม่มีผลลัพธ์";
+    resultBox.innerHTML = `
+      <div class="content-box">
+        <p>${text.replace(/\n/g, "<br>")}</p>
+        <button onclick="copyToClipboard(\`${text}\`)">📋 Copy</button>
+      </div>`;
+  } else if (mode.includes("Image")) {
+    const imageUrl = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    if (imageUrl) {
+      resultBox.innerHTML = `
+        <div class="content-box">
+          <img src="${imageUrl}" alt="Generated Image"/>
+          <a href="${imageUrl}" download="gemini-image.png">
+            <button>⬇️ Download</button>
+          </a>
+        </div>`;
+    } else {
+      resultBox.innerHTML = `<p>❌ ไม่มีรูปภาพ</p>`;
+    }
+  } else {
+    resultBox.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+  }
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert("✅ คัดลอกเรียบร้อยแล้ว");
+  });
+}
+</script>
 </body>
 </html>
