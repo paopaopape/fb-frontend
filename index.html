@@ -46,21 +46,12 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    .btn-primary {
-      background: #1976d2;
-      color: #fff;
-    }
-    .btn-primary:hover {
-      background: #1259a6;
-    }
-    .btn-copy {
-      background: #43a047;
-      color: #fff;
-      margin-left: 10px;
-    }
-    .btn-copy:hover {
-      background: #2e7d32;
-    }
+    .btn-primary { background: #1976d2; color: #fff; }
+    .btn-primary:hover { background: #1259a6; }
+    .btn-copy { background: #43a047; color: #fff; margin-left: 10px; }
+    .btn-copy:hover { background: #2e7d32; }
+    .btn-wake { background: #ff9800; color: #fff; }
+    .btn-wake:hover { background: #ef6c00; }
     .status {
       margin-top: 15px;
       padding: 12px;
@@ -70,6 +61,19 @@
     .green { background: #e8f5e9; color: #2e7d32; }
     .orange { background: #fff3e0; color: #ef6c00; }
     .red { background: #ffebee; color: #c62828; }
+    .progress-container {
+      margin-top: 15px;
+      background: #eee;
+      border-radius: 6px;
+      overflow: hidden;
+      height: 20px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #42a5f5, #0d47a1);
+      transition: width 0.3s;
+    }
     .result-card {
       margin-top: 25px;
       padding: 20px;
@@ -77,10 +81,7 @@
       background: #fafafa;
       border: 1px solid #ddd;
     }
-    .result-card h3 {
-      margin-top: 0;
-      color: #0d47a1;
-    }
+    .result-card h3 { margin-top: 0; color: #0d47a1; }
     pre {
       background: #111;
       color: #0f0;
@@ -106,7 +107,7 @@
   <header>✨ AI Content & Image Generator</header>
 
   <div class="container">
-    <!-- ฟอร์มกรอกข้อมูล -->
+    <!-- ฟอร์ม -->
     <label>หัวข้อ (Topic):</label>
     <input type="text" id="topic" placeholder="เช่น เที่ยวเมืองเลย, การเก็บเงิน..." />
 
@@ -148,15 +149,61 @@
 
     <button class="btn-primary" onclick="generateContent()">🚀 Generate Content</button>
 
+    <!-- Wake Server -->
+    <h3>🖥️ Server Status</h3>
+    <button class="btn-wake" onclick="wakeServer()">Wake Server</button>
     <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
+    <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
 
-    <!-- กล่องแสดงผล -->
+    <!-- ผลลัพธ์ -->
     <div id="resultBox"></div>
   </div>
 
   <script>
-    const API_URL = "https://fb-proxy-m63e.onrender.com"; // 🔧 proxy API
+    const API_URL = "https://fb-proxy-m63e.onrender.com";
 
+    // ฟังก์ชัน Wake Server
+    async function wakeServer() {
+      const statusBox = document.getElementById("serverStatus");
+      const bar = document.getElementById("progressBar");
+      let progress = 0;
+      statusBox.className = "status orange";
+      statusBox.innerText = "🟠 กำลังปลุก Server...";
+      bar.style.width = "0%";
+
+      // Progress Bar 0–100%
+      const progressInterval = setInterval(() => {
+        progress += 20;
+        if (progress > 100) progress = 100;
+        bar.style.width = progress + "%";
+      }, 1000);
+
+      // ตรวจสอบสถานะทุก 10 วิ (รวม 1 นาที)
+      let checks = 0;
+      const checkInterval = setInterval(async () => {
+        checks++;
+        try {
+          const res = await fetch(API_URL + "/");
+          if (res.ok) {
+            clearInterval(progressInterval);
+            clearInterval(checkInterval);
+            statusBox.className = "status green";
+            statusBox.innerText = "🟢 Server ตื่นแล้ว";
+            bar.style.width = "100%";
+          }
+        } catch (err) {
+          console.log("ยังไม่ตื่น:", err);
+        }
+        if (checks >= 6) {
+          clearInterval(progressInterval);
+          clearInterval(checkInterval);
+          statusBox.className = "status red";
+          statusBox.innerText = "🔴 Server ปลุกไม่สำเร็จ";
+        }
+      }, 10000);
+    }
+
+    // ฟังก์ชัน Generate Content
     async function generateContent() {
       const topic = document.getElementById("topic").value;
       const num = document.getElementById("num").value;
@@ -167,6 +214,7 @@
       const platform = document.getElementById("platform").value;
       const statusBox = document.getElementById("serverStatus");
       const resultBox = document.getElementById("resultBox");
+      const bar = document.getElementById("progressBar");
 
       if (!topic) {
         alert("⚠️ กรุณาใส่หัวข้อก่อนครับ");
@@ -175,6 +223,14 @@
 
       statusBox.className = "status orange";
       statusBox.innerText = "🟠 กำลังสร้างคอนเทนต์...";
+      bar.style.width = "0%";
+
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 15;
+        if (progress > 100) progress = 100;
+        bar.style.width = progress + "%";
+      }, 800);
 
       try {
         const res = await fetch(API_URL + "/generate", {
@@ -184,22 +240,26 @@
         });
 
         const data = await res.json();
+        clearInterval(progressInterval);
 
         if (data.status === "ok") {
           showResult(data.data, mode);
           statusBox.className = "status green";
           statusBox.innerText = "🟢 สร้างเสร็จแล้ว!";
+          bar.style.width = "100%";
         } else {
           statusBox.className = "status red";
           statusBox.innerText = "🔴 Error: " + (data.error || "ไม่ทราบสาเหตุ");
         }
       } catch (err) {
+        clearInterval(progressInterval);
         console.error(err);
         statusBox.className = "status red";
         statusBox.innerText = "🔴 Error: ติดต่อ API ไม่สำเร็จ";
       }
     }
 
+    // แสดงผลลัพธ์
     function showResult(result, mode) {
       const resultBox = document.getElementById("resultBox");
       resultBox.innerHTML = "";
