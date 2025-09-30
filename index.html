@@ -3,41 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Content Generator + Manual Wake</title>
+  <title>✨ AI Content & Image Generator</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f9fafb; padding: 20px; }
     h1 { color: #0066cc; }
     .card { background: white; padding: 20px; border-radius: 8px; 
             box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; background: #0066cc; color: white; }
-    button:hover { background: #004a99; }
-    .status { padding: 10px; margin-top: 10px; border-radius: 5px; font-weight: bold; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+    button.generate { background: #0066cc; color: white; }
+    button.generate:hover { background: #004a99; }
+    button.wake { background: #28a745; color: white; }
+    button.wake:hover { background: #1e7e34; }
+    .status { padding: 10px; margin-top: 10px; border-radius: 5px; font-weight: bold; text-align: center; }
     .green { background: #d4edda; color: #155724; }
     .orange { background: #fff3cd; color: #856404; }
     .red { background: #f8d7da; color: #721c24; }
+    pre { background: #1e1e1e; color: #33ff33; padding: 10px; border-radius: 5px; overflow-x: auto; }
   </style>
 </head>
 <body>
-  <h1>✨ Content & Image Generator</h1>
+  <h1>✨ AI Content & Image Generator</h1>
 
+  <!-- ฟอร์มสร้างคอนเทนต์ -->
   <div class="card">
-    <label>ใส่ Topic ที่อยากทำคอนเทนต์:</label>
-    <input type="text" id="topic" placeholder="เช่น วิธีเก็บเงิน, การทำบัญชี...">
-    <label>จำนวน (1–5):</label>
+    <label>หัวข้อ (Topic):</label>
+    <input type="text" id="topic" placeholder="เช่น เที่ยวเมืองเลย, การเก็บเงิน...">
+
+    <label>จำนวน (สูงสุด 5):</label>
     <input type="number" id="count" min="1" max="5" value="1">
-    <button onclick="generateContent()">Generate Content</button>
+
+    <label>โหมด:</label>
+    <select id="mode">
+      <option value="text">Text (คอนเทนต์โพสต์)</option>
+      <option value="image">Image (ภาพประกอบ)</option>
+    </select>
+
+    <label>โมเดล:</label>
+    <select id="model">
+      <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡</option>
+      <option value="gemini-2.0-pro">Gemini 2.0 Pro 🧠</option>
+    </select>
+
+    <label>โทนบทความ/ภาพ:</label>
+    <select id="tone">
+      <option value="ง่ายๆ">แบบอ่านเข้าใจง่าย 📘</option>
+      <option value="ตลก">แนวตลกขำๆ 😂</option>
+      <option value="จริงจัง">แนวจริงจัง/เป็นทางการ 🏛️</option>
+      <option value="สร้างแรงบันดาลใจ">สร้างแรงบันดาลใจ ✨</option>
+    </select>
+
+    <label>ภาษา:</label>
+    <select id="lang">
+      <option value="th">ภาษาไทย 🇹🇭</option>
+      <option value="en">English 🇬🇧</option>
+    </select>
+
+    <label>แพลตฟอร์ม:</label>
+    <select id="platform">
+      <option value="facebook">Facebook</option>
+      <option value="instagram">Instagram</option>
+      <option value="twitter">Twitter</option>
+    </select>
+
+    <button class="generate" onclick="generateContent()">Generate Content</button>
   </div>
 
+  <!-- สถานะ Server -->
   <div class="card">
     <h3>🖥️ Server Status</h3>
-    <button onclick="wakeServer()">Wake Server</button>
+    <button class="wake" onclick="wakeServer()">Wake Server</button>
     <div id="serverStatus" class="status red">🔴 Server ปิดอยู่</div>
   </div>
 
+  <!-- ผลลัพธ์ -->
   <div id="result" class="card" style="display:none;">
     <h2>ผลลัพธ์:</h2>
     <p id="postText"></p>
     <pre id="imagePrompt"></pre>
+    <button onclick="copyResult()">📋 Copy</button>
   </div>
 
   <script>
@@ -82,6 +127,12 @@
     async function generateContent() {
       const topic = document.getElementById("topic").value;
       const count = document.getElementById("count").value;
+      const model = document.getElementById("model").value;
+      const mode = document.getElementById("mode").value;
+      const tone = document.getElementById("tone").value;
+      const lang = document.getElementById("lang").value;
+      const platform = document.getElementById("platform").value;
+
       if (!topic) return alert("กรุณากรอก Topic ก่อน");
 
       document.getElementById("result").style.display = "block";
@@ -92,16 +143,22 @@
         const res = await fetch(API_URL + "/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model: "gemini-2.0-flash" })
+          body: JSON.stringify({ topic, count, model, mode, tone, lang, platform })
         });
         const data = await res.json();
 
         const text = data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || "❌ ไม่มีผลลัพธ์";
         document.getElementById("postText").innerText = text;
-        document.getElementById("imagePrompt").innerText = "Image Prompt: " + topic;
+        document.getElementById("imagePrompt").innerText = mode === "image" ? "Image Prompt: " + topic : "";
       } catch (e) {
         document.getElementById("postText").innerText = "❌ Error: " + e.message;
       }
+    }
+
+    function copyResult() {
+      const text = document.getElementById("postText").innerText;
+      navigator.clipboard.writeText(text);
+      alert("✅ คัดลอกเรียบร้อยแล้ว!");
     }
 
     // เช็คสถานะ server ตอนโหลดหน้า
