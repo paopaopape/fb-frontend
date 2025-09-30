@@ -9,39 +9,58 @@
       background: #f9fafb;
       margin: 0;
       padding: 20px;
+      font-size: 18px; /* ✅ ขยายตัวอักษร */
     }
-    h1 { color: #2563eb; }
+    h1 {
+      color: #2563eb;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
     .form-box, .status-box, .result-box {
       background: #fff;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
     }
     label {
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 12px;
       display: block;
+      font-size: 17px;
     }
     select, input, button {
-      margin-top: 5px;
+      margin-top: 6px;
       margin-bottom: 15px;
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
       width: 100%;
+      font-size: 16px;
     }
-    button { cursor: pointer; font-weight: bold; }
-    .btn-primary { background: #2563eb; color: white; border: none; }
+    button {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 17px;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+      border: none;
+    }
     .btn-primary:hover { background: #1e40af; }
     .btn-orange { background: orange; border: none; color: white; }
     .btn-green { background: #16a34a; border: none; color: white; }
+
     .progress {
-      height: 12px;
+      height: 14px;
       background: #e5e7eb;
       border-radius: 6px;
       overflow: hidden;
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .progress-bar {
       height: 100%;
@@ -49,18 +68,29 @@
       background: linear-gradient(to right,#3b82f6,#1e40af);
       transition: width 0.3s;
     }
-    .status { font-weight: bold; margin-top: 10px; }
+    .status { font-weight: bold; margin-top: 12px; font-size: 16px; }
     .green { color: green; }
     .orange { color: orange; }
     .red { color: red; }
+
     .content-box {
       border: 1px solid #ddd;
-      padding: 15px;
+      padding: 18px;
       border-radius: 8px;
       margin-top: 15px;
       background: #f3f4f6;
+      font-size: 16px;
+      line-height: 1.6;
     }
     .content-box img { max-width: 100%; border-radius: 8px; }
+    .action-btns {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+    .action-btns button {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -166,7 +196,6 @@ async function wakeServer() {
     await fetch(API_URL + "/"); // ยิงปลุก
     clearInterval(interval);
     wakeBar.style.width = "100%";
-    // ✅ หลังปลุกเสร็จ → ตรวจสถานะจริง
     checkServerStatus();
   } catch (err) {
     clearInterval(interval);
@@ -217,7 +246,7 @@ async function generateContent() {
     bar.style.width = "100%";
 
     if (data.status === "ok") {
-      showResult(data.data, document.getElementById("mode").value);
+      showResult(data, document.getElementById("mode").value);
       statusBox.className = "status green";
       statusBox.innerText = "🟢 เสร็จแล้ว!";
     } else {
@@ -238,21 +267,24 @@ function showResult(data, mode) {
   const resultBox = document.getElementById("resultBox");
 
   if (mode.includes("Text")) {
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "❌ ไม่มีผลลัพธ์";
+    const text = data?.text || "❌ ไม่มีผลลัพธ์";
     resultBox.innerHTML = `
       <div class="content-box">
         <p>${text.replace(/\n/g, "<br>")}</p>
-        <button onclick="copyToClipboard(\`${text}\`)">📋 Copy</button>
+        <div class="action-btns">
+          <button onclick="copyToClipboard(\`${text}\`)">📋 Copy</button>
+        </div>
       </div>`;
   } else if (mode.includes("Image")) {
-    const imageUrl = data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-    if (imageUrl) {
+    const imagePrompt = data?.text || null;
+    if (imagePrompt) {
       resultBox.innerHTML = `
         <div class="content-box">
-          <img src="${imageUrl}" alt="Generated Image"/>
-          <a href="${imageUrl}" download="gemini-image.png">
-            <button>⬇️ Download</button>
-          </a>
+          <p><b>🎨 Image Prompt:</b></p>
+          <p>${imagePrompt}</p>
+          <div class="action-btns">
+            <button onclick="copyToClipboard(\`${imagePrompt}\`)">📋 Copy</button>
+          </div>
         </div>`;
     } else {
       resultBox.innerHTML = `<p>❌ ไม่มีรูปภาพ</p>`;
