@@ -1,133 +1,56 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>✨ AI Content & Facebook Scheduler</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121826;
-      color: #fff;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      color: #ffcc70;
-      text-align: center;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #1e2435;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 8px;
-      border: none;
-      font-size: 15px;
-    }
-    button {
-      background: #3b82f6;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #2563eb;
-    }
-    .result {
-      margin-top: 20px;
-      padding: 15px;
-      background: #0f172a;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      line-height: 1.6;
-    }
-    .error {
-      color: #f87171;
-      margin-top: 15px;
-    }
-  </style>
-</head>
-<body>
-  <h1>✨ AI Content & Facebook Scheduler</h1>
-  <div class="container">
-    <label>หัวข้อ (Topic)</label>
-    <input id="topic" placeholder="เช่น การออมเงิน" />
+<div id="results"></div>
 
-    <label>จำนวน (สูงสุด 5)</label>
-    <select id="count">
-      <option>1</option>
-      <option>2</option>
-      <option>3</option>
-      <option>4</option>
-      <option>5</option>
-    </select>
+<script>
+  async function generate() {
+    document.getElementById("error").textContent = "";
+    document.getElementById("results").innerHTML = "<p>⏳ กำลังสร้างคอนเทนต์...</p>";
 
-    <label>โมเดล</label>
-    <select id="model">
-      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-      <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-    </select>
+    const topic = document.getElementById("topic").value;
+    const count = document.getElementById("count").value;
+    const model = document.getElementById("model").value;
 
-    <button onclick="generate()">Generate</button>
+    try {
+      const response = await fetch(proxyBase + "/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, count, model }),
+      });
 
-    <div id="error" class="error"></div>
-    <div id="result" class="result"></div>
-  </div>
+      if (!response.ok) throw new Error("HTTP " + response.status);
 
-  <script>
-    const proxyBase = localStorage.getItem("proxyBase") || "https://fb-proxy-m63e.onrender.com";
+      const json = await response.json();
 
-    async function generate() {
-      document.getElementById("error").textContent = "";
-      document.getElementById("result").textContent = "⏳ กำลังสร้างคอนเทนต์...";
+      if (json?.data?.candidates) {
+        let html = "";
+        json.data.candidates.forEach((c, i) => {
+          const text = c.content.parts.map(p => p.text).join("\n");
 
-      const topic = document.getElementById("topic").value;
-      const count = document.getElementById("count").value;
-      const model = document.getElementById("model").value;
-
-      try {
-        const response = await fetch(proxyBase + "/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, count, model }),
+          html += `
+            <div style="background:#1e293b; padding:15px; margin:10px 0; border-radius:10px; line-height:1.6; color:#f1f5f9;">
+              <h3 style="color:#ffcc70;">📄 คอนเทนต์ #${i+1}</h3>
+              <pre style="white-space:pre-wrap; font-family:inherit;">${text}</pre>
+              <button onclick="copyToClipboard(\`${text.replace(/`/g, '\\`')}\`)" 
+                style="margin-top:10px; padding:5px 10px; border:none; border-radius:5px; background:#3b82f6; color:#fff; cursor:pointer;">
+                📋 คัดลอก
+              </button>
+            </div>
+          `;
         });
-
-        if (!response.ok) throw new Error("HTTP " + response.status);
-
-        const json = await response.json();
-
-        // ✅ แสดงผลสวยๆ เฉพาะ text
-        let textOutput = "";
-        if (json?.data?.candidates) {
-          textOutput = json.data.candidates
-            .map(c => c.content.parts.map(p => p.text).join("\n"))
-            .join("\n\n---\n\n");
-        } else if (json?.data?.error) {
-          throw new Error(json.data.error.message);
-        } else {
-          throw new Error("ไม่พบข้อมูลที่สามารถแสดงผลได้");
-        }
-
-        document.getElementById("result").textContent = textOutput;
-      } catch (err) {
-        document.getElementById("result").textContent = "";
-        document.getElementById("error").textContent = "❌ Error: " + err.message;
+        document.getElementById("results").innerHTML = html;
+      } else if (json?.data?.error) {
+        throw new Error(json.data.error.message);
+      } else {
+        throw new Error("ไม่พบข้อมูลที่สามารถแสดงผลได้");
       }
+    } catch (err) {
+      document.getElementById("results").innerHTML = "";
+      document.getElementById("error").textContent = "❌ Error: " + err.message;
     }
-  </script>
-</body>
-</html>
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert("✅ คัดลอกข้อความเรียบร้อยแล้ว!");
+    });
+  }
+</script>
